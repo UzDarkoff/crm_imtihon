@@ -7,11 +7,11 @@ from datetime import datetime
 from ..models import Attendance, GroupStudent, User
 
 from rest_framework.permissions import IsAuthenticated
-from ..permissions import IsAdminOrStaff, IsTeacherOfGroup
+from ..permissions import IsAdminOrStaff, IsTeacherOfGroup, IsTeacher
 
 
 class GroupAttendanceView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff | IsTeacherOfGroup]
+    permission_classes = [IsAuthenticated, IsAdminOrStaff | IsTeacher]
 
     @swagger_auto_schema(
         manual_parameters=[

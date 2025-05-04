@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from configapp.models.homework_model import Homework
+from configapp.permissions import IsTeacher, IsAdminOrStaff
 from configapp.serializers.homework_serializer import HomeworkSerializer, HomeworkSubmissionSerializer
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,7 +13,7 @@ from rest_framework import permissions
 
 
 class HomeworkListCreateApi(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,IsAdminOrStaff|IsTeacher]
 
     @swagger_auto_schema(request_body=HomeworkSerializer)
     def post(self, request):
