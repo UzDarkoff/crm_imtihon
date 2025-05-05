@@ -75,6 +75,24 @@ AUTHENTICATION_BACKENDS = [
     'configapp.authentication.PhoneBackend',  # <-- to‘liq yo‘l bo‘lishi kerak
     'django.contrib.auth.backends.ModelBackend',
 ]
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/var/www/crm_imtihon/logs/django.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
