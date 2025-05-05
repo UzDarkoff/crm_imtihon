@@ -82,7 +82,8 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/var/www/crm_imtihon/logs/django.log',
+            'filename': 'D:/imtihon_crm/debug.log',
+
         },
     },
     'loggers': {
