@@ -44,7 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username=models.CharField(max_length=25)
     email = models.EmailField(unique=True, null=True, blank=True)
     phone_number = models.CharField(validators=[phone_regex],max_length=13, unique=True)
-    group_id = models.ForeignKey("GroupStudent", on_delete=models.SET_NULL, null=True, blank=True, related_name="students_in_group")
+    group= models.ForeignKey("GroupStudent", on_delete=models.SET_NULL, null=True, blank=True, related_name="students_in_group")
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
