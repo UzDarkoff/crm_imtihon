@@ -57,4 +57,4 @@ class SMSSerializer(serializers.Serializer):
 
 class VerifySMSSerializer(serializers.Serializer):
     phone_number = serializers.CharField()
-    verification_code = serializers.CharField()
+    otp_code = serializers.CharField()  # OTP uchun maydon qo'shildi

@@ -1,52 +1,58 @@
-from drf_yasg.utils import swagger_serializer_method, swagger_auto_schema
-from rest_framework.response import Response
-from rest_framework.views import APIView
+
+from configapp.serializers.homework_serializer import  HomeworkSubmissionSerializer, \
+    HomeworkCreateUpdateSerializer
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from configapp.models.homework_model import Homework
-from configapp.permissions import IsTeacher, IsAdminOrStaff
-from configapp.serializers.homework_serializer import HomeworkSerializer, HomeworkSubmissionSerializer
+from drf_yasg.utils import swagger_auto_schema
+from ..serializers import HomeworkSerializer
+from ..models import Homework
+
+
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from rest_framework import permissions
-
-
-
-class HomeworkListCreateApi(APIView):
-    permission_classes = [permissions.IsAuthenticated,IsAdminOrStaff|IsTeacher]
-
-    @swagger_auto_schema(request_body=HomeworkSerializer)
-    def post(self, request):
-        # Faqat Teacher foydalanuvchilar yaratishi kerak
-        if not request.user.is_teacher:
-            return Response({'detail': 'You do not have permission to create homework.'},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        serializer = HomeworkSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(created_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class StudentHomeworkView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if request.user.is_staff: #admin homework larni ko'rishi uchun
-            homeworks = Homework.objects.all()
-        else:
-            homeworks = Homework.objects.filter(created_by=request.user) #teacher o'zi yaratgan homeworklarni ko'ra oladi
+        user = request.user
+        homeworks = Homework.objects.filter(student=user)
         serializer = HomeworkSerializer(homeworks, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-class HomeworkSubmissionCreateApi(APIView): # Studentlar homework yuklashi uchun
-    permission_classes = [permissions.IsAuthenticated]
-    @swagger_auto_schema(request_body=HomeworkSubmissionSerializer)
-    def post(self, request, homework_id):
-        try:
-            homework = Homework.objects.get(id=homework_id)
-        except Homework.DoesNotExist:
-            return Response({'detail': 'Homework not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = HomeworkSubmissionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(student=request.user, homework=homework)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TeacherHomeworkViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = HomeworkCreateUpdateSerializer
+    @swagger_auto_schema(
+        operation_description="O‘qituvchi o‘z guruhidagi vazifalarni ko‘rish",
+        responses={200: HomeworkSerializer(many=True)},
+        request_body=HomeworkCreateUpdateSerializer
+
+    )
+    def get_queryset(self):
+        # O‘qituvchi o‘z guruhidagi vazifalarni ko‘rishi
+        teacher = self.request.user.teacher_profile
+        return Homework.objects.filter(created_by=teacher)
+
+    @swagger_auto_schema(
+        operation_description="O‘qituvchi yangi vazifa yaratishi",
+        request_body=HomeworkCreateUpdateSerializer,
+        responses={201: "Vazifa yaratildi"}
+    )
+    def perform_create(self, serializer):
+        teacher = self.request.user.teacher_profile
+        serializer.save(created_by=teacher)
+
+    @swagger_auto_schema(
+        operation_description="O‘qituvchi vazifani yangilashi",
+        request_body=HomeworkCreateUpdateSerializer,
+        responses={200: "Vazifa yangilandi"}
+    )
+    def perform_update(self, serializer):
+        teacher = self.request.user.teacher_profile
+        serializer.save(updated_by=teacher)

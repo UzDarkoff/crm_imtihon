@@ -26,8 +26,10 @@ class TableSerializer(serializers.ModelSerializer):
         fields = ['id', 'start_time', 'end_time', 'room', 'type', 'descriptions']
 
 # GroupStudent modeli uchun serializer
+from rest_framework import serializers
+
+
 class GroupStudentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GroupStudent  # Model nomi
-        # Seriyalizatsiya qilinadigan maydonlar
+        model = GroupStudent
         fields = ['id', 'title', 'course', 'teacher', 'table', 'start_date', 'end_date', 'descriptions']

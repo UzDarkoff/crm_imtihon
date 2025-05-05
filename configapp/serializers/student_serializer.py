@@ -1,35 +1,40 @@
 from .user_serializer import *
+from ..models import Student, Parents
+
 
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
         model = Student
-        fields = ['id', 'user', 'group', 'is_line', 'descriptions']
+        fields = '__all__'
 
-    def create(self, validated_data):  # yangi student yaratish
-        user_data = validated_data.pop('user')  # user ma'lumotlarini ajratib olish
-        group_data = validated_data.pop('group')  # groupni alohida ajratib olamiz
-        user = User.objects.create_user(**user_data)  # user ma'lumotlari asosida yangi user yaratish
-        student = Student.objects.create(user=user, **validated_data)  # student yaratish
-        student.group.set(group_data)  # M2M uchun .set() ishlatamiz
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        groups = validated_data.pop('group', [])  # groupni alohida ajratib olamiz
+
+        user = UserSerializer().create(user_data)
+        student = Student.objects.create(user=user, **validated_data)
+
+        student.group.set(groups)  # grouplarga set() orqali qo‘shamiz
         return student
 
-    def update(self, instance, validated_data):  # student ma'lumotlarini tahrirlash
-        user_data = validated_data.pop('user', {})  # user malumotlarini olish, ma'lumot bo'lmasa bo'sh dict
-        # user uchun serializerni yaratish:
-        user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
-        if user_serializer.is_valid():  # Agar user ma'lumotlari to'g'ri bo'lsa
-            user_serializer.save()  # saqlash
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
 
-        if 'group' in validated_data:
-            instance.group.set(validated_data['group'])  # M2M uchun .set()
+        if user_data:
+            UserSerializer().update(instance.user, user_data)
 
-        instance.group.set(validated_data.get('group', instance.group.all()))  # guruhni yangilash
-        instance.is_line = validated_data.get('is_line', instance.is_line)  # holatni yangilash
-        instance.descriptions = validated_data.get('descriptions', instance.descriptions)  # tavsif
-        instance.save()  # saqlash
-        return instance  # o'zgargan ma'lumotni qaytarish
+        for attr, value in validated_data.items():
+            # ManyToManyField uchun alohida ishlov beramiz
+            field = instance._meta.get_field(attr)
+            if field.many_to_many:
+                getattr(instance, attr).set(value)
+            else:
+                setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 

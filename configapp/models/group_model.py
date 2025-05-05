@@ -40,6 +40,7 @@ class GroupStudent(BaseModel):
     start_date = models.DateField()
     end_date = models.DateField()
     descriptions = models.CharField(max_length=500, null=True, blank=True)
+    students = models.ManyToManyField('User', related_name='group_students', blank=True, limit_choices_to={'is_student': True})
 
     def __str__(self):
         return self.title

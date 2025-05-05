@@ -1,4 +1,6 @@
 from .user_serializer import *
+from ..models import Departments, Course, Teacher
+
 
 class DepartmentSerializer(serializers.ModelSerializer):# Department uchun Serializers:
     class Meta:
@@ -10,33 +12,40 @@ class CourseSerializer(serializers.ModelSerializer): # Course uchun Serialzier
         model = Course  # Model nomi
         fields = ['id', 'title', 'descriptions']# Seriyalizatsiya qilinadigan maydonlar
 
+
+
 class TeacherSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    departments = serializers.PrimaryKeyRelatedField(queryset=Departments.objects.all(), many=True)
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all(), many=True)
 
     class Meta:
-        model = Teacher #Model nomi
-        fields = ['id', 'user', 'departments', 'course', 'descriptions']
+        model = Teacher
+        fields = '__all__'
 
-    def create(self, validated_data):  # yangi teacher yaratish uchun create funksiya
-        user_data = validated_data.pop('user')  # user ma'lumotlarini ajratib olish
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
         departments = validated_data.pop('departments', [])
         courses = validated_data.pop('course', [])
-        user = User.objects.create_user(**user_data)  # user ma'lumotlari asosida user yaratish
-        teacher = Teacher.objects.create(user=user, **validated_data)  # teacherni create qilish
-        teacher.departments.set(departments)  # .set() bilan many-to-many fieldga qiymat berish
+        user = UserSerializer().create(user_data)
+        teacher = Teacher.objects.create(user=user, **validated_data)
+        teacher.departments.set(departments)
         teacher.course.set(courses)
-        return teacher  # yaratilgan teacherni qayatrish
+        return teacher
 
-    def update(self, instance, validated_data):  # teacher ma'lumotlarini tahrirlash
-        user_data = validated_data.pop('user', {})  # user ma'lumotlarini olish bo'lmasa bosh dict
-        # User serializerini yaratish:
-        user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
-        if user_serializer.is_valid():  # Agar User ma'lumotlari to'g'ri bo'lsa
-            user_serializer.save()  # saqlash
-        # Bo'limlarni yangilash:
-        instance.departments.set(validated_data.get('departments', instance.departments.all()))
-        # Courslarni yangilash
-        instance.course.set(validated_data.get('course', instance.departments.all()))
-        instance.descriptions = validated_data.get('descriptions', instance.descriptions)  # tavsifni yangilash
-        instance.save()  # o'zgarishlarni saqlash
-        return instance  # o'zgargan Teacher ma'lumotlarini qaytarish
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
+        departments = validated_data.pop('departments', None)
+        courses = validated_data.pop('course', None)
+
+        if user_data:
+            UserSerializer().update(instance.user, user_data)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if departments is not None:
+            instance.departments.set(departments)
+        if courses is not None:
+            instance.course.set(courses)
+        return instance

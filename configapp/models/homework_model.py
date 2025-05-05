@@ -1,10 +1,11 @@
 
 from django.db import models
-from configapp.models import Student, Teacher
+from configapp.models import Student, Teacher, User
 
 
 class Homework(models.Model): # Teacher
     title = models.CharField(max_length=255)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
     description = models.TextField(blank=True)
     file = models.FileField(upload_to='homeworks/', blank=True, null=True)
     due_date = models.DateField()

@@ -6,7 +6,7 @@ class Student(BaseModel):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ongoing')
-    group = models.ManyToManyField('GroupStudent', related_name='students_in_group')
+    group = models.ManyToManyField('GroupStudent', related_name='students_group')
     is_line = models.BooleanField(default=False)
     descriptions = models.CharField(max_length=500, blank=True, null=True)
 

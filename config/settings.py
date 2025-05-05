@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-vu5wz)=xs1@7jwldiu+&q*c+amz%n^od^$1dbx+8t7qs4&fzd3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','134.209.255.36']
+ALLOWED_HOSTS = ['*', '134.209.255.36']
 
 # Application definition
 
@@ -73,7 +73,7 @@ SWAGGER_SETTINGS = {
 }
 AUTHENTICATION_BACKENDS = [
     'configapp.authentication.PhoneBackend',  # <-- to‘liq yo‘l bo‘lishi kerak
-    'django.contrib.auth.backends.ModelBackend'
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 MIDDLEWARE = [
@@ -84,6 +84,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -146,14 +147,18 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
 import os
 
-STATICFILES_DIRS=[
-    os.path.join(BASE_DIR, 'config/static/')
+# Static files (CSS, JavaScript, images)
+STATIC_URL = '/static/'
+
+# Papkani o'z ichiga olgan kataloglar (development uchun)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'config/static'),
 ]
-STATIC_ROOT=os.path.join(BASE_DIR, 'static/')
+
+# Statik fayllarni to'plagan joy (production uchun)
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
